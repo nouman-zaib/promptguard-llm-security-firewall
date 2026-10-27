@@ -2,6 +2,7 @@
 .env.*
 !.env.example
 .git
+.github
 .venv
 venv
 __pycache__
