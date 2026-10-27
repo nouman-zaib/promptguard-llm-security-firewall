@@ -147,6 +147,20 @@ streamlit run dashboard/streamlit_app.py
 docker-compose up --build
 ```
 
+### 🔄 CI/CD Pipeline & Docker Registry Integration
+PromptGuard includes a production-ready GitHub Actions CI/CD pipeline (`.github/workflows/ci.yml`) that executes on every push to `main`, `feature/**` branches, and on Pull Requests:
+
+1. **Automated Testing**: Runs the complete unit and security test suite using Python 3.11 with pip caching.
+2. **Docker Build & Health Verification**: Builds the container image using Buildx with GitHub Actions layer caching and runs a live smoke test against `http://localhost:8000/health`.
+3. **Container Registry Publishing**: Automatically publishes versioned and `latest` tags to:
+   - **GitHub Container Registry (GHCR)**: `ghcr.io/<owner>/promptguard` (enabled automatically via `GITHUB_TOKEN`).
+   - **Docker Hub**: `${DOCKERHUB_USERNAME}/promptguard` (optional; active when repository secrets are provided).
+
+#### Configuring Docker Hub Secrets (Optional)
+To push images directly to Docker Hub upon merging to `main`, configure the following repository secrets under **Settings > Secrets and variables > Actions**:
+- `DOCKERHUB_USERNAME`: Your Docker Hub username
+- `DOCKERHUB_TOKEN`: A Docker Hub Personal Access Token (PAT) with Read & Write permissions
+
 ---
 
 ## 🧪 Testing and Evaluation
