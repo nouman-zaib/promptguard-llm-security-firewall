@@ -5,7 +5,7 @@ services:
     build: .
     container_name: promptguard-backend
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     env_file:
       - .env
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
@@ -16,9 +16,10 @@ services:
     build: .
     container_name: promptguard-dashboard
     ports:
-      - "8501:8501"
+      - "127.0.0.1:8501:8501"
     environment:
       - PROMPTGUARD_API_URL=http://backend:8000
+      - PROMPTGUARD_API_KEY=${PROMPTGUARD_API_KEY:-}
     depends_on:
       - backend
     command: streamlit run dashboard/streamlit_app.py --server.port 8501 --server.address 0.0.0.0

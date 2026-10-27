@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Optional, Tuple
 from app.schemas import ToolCallResponse
 
 ALLOWED_TOOLS = {"read_file", "list_files", "run_tests"}

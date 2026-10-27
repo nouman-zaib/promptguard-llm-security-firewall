@@ -7,6 +7,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 API_URL = os.getenv("PROMPTGUARD_API_URL", "http://127.0.0.1:8000")
+API_KEY = os.getenv("PROMPTGUARD_API_KEY", "")
+API_HEADERS = {"Authorization": f"Bearer {API_KEY}"} if API_KEY else {}
 
 st.set_page_config(
     page_title="PromptGuard - AI Security Gateway",
@@ -129,6 +131,7 @@ with tabs[0]:
                     resp = requests.post(
                         f"{API_URL}/api/analyze",
                         json={"prompt": prompt_input, "context": context_input},
+                        headers=API_HEADERS,
                         timeout=35,
                     )
                     if resp.status_code == 200:
@@ -188,6 +191,7 @@ with tabs[1]:
                 resp = requests.post(
                     f"{API_URL}/api/chat",
                     json={"prompt": chat_prompt, "context": chat_context},
+                    headers=API_HEADERS,
                     timeout=40,
                 )
                 if resp.status_code == 200:
@@ -238,6 +242,7 @@ with tabs[2]:
                 resp = requests.post(
                     f"{API_URL}/api/agent/demo",
                     params={"task": agent_task},
+                    headers=API_HEADERS,
                     timeout=30,
                 )
                 if resp.status_code == 200:
@@ -340,7 +345,9 @@ with tabs[4]:
     st.markdown("Records security decisions, latencies, and threat categories with content hashes for secret redaction.")
 
     try:
-        summary_resp = requests.get(f"{API_URL}/api/audit/summary", timeout=10)
+        summary_resp = requests.get(
+            f"{API_URL}/api/audit/summary", headers=API_HEADERS, timeout=10
+        )
         if summary_resp.status_code == 200:
             stats = summary_resp.json()
             s1, s2, s3, s4 = st.columns(4)
@@ -350,7 +357,9 @@ with tabs[4]:
             s3.metric("Blocked Requests", actions.get("block", 0))
             s4.metric("Avg Evaluation Latency", f"{stats.get('avg_latency_ms', 0)} ms")
 
-        events_resp = requests.get(f"{API_URL}/api/audit?limit=50", timeout=10)
+        events_resp = requests.get(
+            f"{API_URL}/api/audit?limit=50", headers=API_HEADERS, timeout=10
+        )
         if events_resp.status_code == 200:
             events = events_resp.json()
             if events:

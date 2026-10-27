@@ -1,7 +1,10 @@
-from fastapi import FastAPI, HTTPException, Query
+import hmac
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from typing import Dict, Any, List
 
+from app.config import settings
 from app.schemas import (
     AnalyzeRequest,
     SecurityDecision,
@@ -25,11 +28,27 @@ app = FastAPI(
 # Enable CORS for Streamlit and external frontend integrations
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=settings.cors_allowed_origins,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def require_api_key(request: Request, call_next):
+    api_key = settings.promptguard_api_key
+    if api_key and request.url.path.startswith("/api/") and request.method != "OPTIONS":
+        supplied_key = request.headers.get("Authorization", "")
+        expected_key = f"Bearer {api_key}"
+        if not hmac.compare_digest(supplied_key, expected_key):
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "A valid bearer token is required."},
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    return await call_next(request)
+
 
 tool_guard = ToolPolicyGuard(workspace_root="demo_workspace")
 agent_simulator = SecureCodingAgentSimulator(workspace_path="demo_workspace")

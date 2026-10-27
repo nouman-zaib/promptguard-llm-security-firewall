@@ -1,4 +1,8 @@
+import pytest
+from fastapi.testclient import TestClient
+
 from app.main import (
+    app,
     health,
     analyze_route,
     chat_route,
@@ -6,6 +10,7 @@ from app.main import (
     audit_events_route,
     audit_summary_route,
 )
+from app.config import settings
 from app.schemas import (
     AnalyzeRequest,
     ChatRequest,
@@ -84,3 +89,27 @@ def test_audit_endpoints():
     summary = audit_summary_route()
     assert "total_requests" in summary
     assert "actions" in summary
+
+
+def test_api_key_protects_api_routes(monkeypatch):
+    monkeypatch.setattr(settings, "promptguard_api_key", "test-token")
+    client = TestClient(app)
+
+    denied = client.get("/api/audit/summary")
+    assert denied.status_code == 401
+
+    allowed = client.get(
+        "/api/audit/summary",
+        headers={"Authorization": "Bearer test-token"},
+    )
+    assert allowed.status_code == 200
+
+
+def test_analysis_fails_closed_when_fallback_disabled(monkeypatch):
+    from app.security.analyzer import analyze
+
+    monkeypatch.setattr(settings, "nebius_api_key", "replace_with_your_key")
+    monkeypatch.setattr(settings, "enable_mock_fallback", False)
+
+    with pytest.raises(RuntimeError, match="API key not configured"):
+        analyze("Explain this Python function.")

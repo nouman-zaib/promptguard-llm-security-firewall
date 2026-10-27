@@ -20,7 +20,8 @@ Without a policy enforcement boundary, the model can conflate untrusted data wit
 ## ✨ Key Features
 
 - **Multi-Layer Defense**: Combines deterministic high-speed rule matching with semantic context classification using an NVIDIA Nemotron model.
-- **Fail-Closed Architecture**: If security analysis errors, times out, or fails schema validation, requests are denied and not forwarded.
+- **Fail-Closed Architecture**: If security analysis errors, times out, or fails schema validation, requests are denied and not forwarded. Offline mock fallback is disabled by default.
+- **API Protection**: Optional bearer-token protection for API routes, with Docker ports bound to localhost by default.
 - **Independent Policy Engine**: Returns `ALLOW`, `REVIEW`, or `BLOCK` independently of the model's prose.
 - **Restricted Tool Gateway**: Strictly authorizes agent tools (`read_file`, `list_files`, `run_tests`) inside isolated workspace boundaries while rejecting path traversal (`../`) and blocking shell execution or credential theft.
 - **Redacted SQLite Audit Store**: Logs request decisions, threat categories, latencies, and content hashes without persisting raw secrets.
@@ -116,7 +117,9 @@ NEBIUS_BASE_URL=https://api.tokenfactory.nebius.com/v1/
 NEBIUS_MODEL=nvidia/nemotron-3-super-120b-a12b
 PROMPTGUARD_API_URL=http://127.0.0.1:8000
 ```
-*(Note: If no key is configured, PromptGuard runs in a deterministic fallback demo mode for local development and offline testing).*
+By default, requests fail closed if no Nebius key is configured. For an offline local demo only, set `ENABLE_MOCK_FALLBACK=true` in `.env`; do not enable this in a deployed environment.
+
+To protect API routes with a bearer token, set `PROMPTGUARD_API_KEY` in `.env`. The dashboard uses the same token. When no token is configured, run only on a trusted local machine; Docker Compose binds both published ports to localhost.
 
 ### 4. Verify Nebius Model Connectivity
 ```bash
@@ -214,6 +217,7 @@ curl -X POST "http://127.0.0.1:8000/api/agent/demo"
 - This is a defense-in-depth prototype designed for hackathon demonstration. It does not claim 100% detection of all zero-day jailbreaks.
 - Tool permissions and sandbox confinement are enforced independently of the model's output.
 - All secrets and keys are excluded from git and logs using SHA-256 content hashing.
+- The API is a local-use prototype. Before exposing it beyond localhost, configure `PROMPTGUARD_API_KEY`, restrict `CORS_ALLOWED_ORIGINS` to trusted frontends, and deploy behind HTTPS.
 
 ---
 
