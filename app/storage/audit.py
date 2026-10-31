@@ -10,11 +10,18 @@ from app.schemas import AuditLogRecord
 def get_db_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(settings.audit_db_path)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
     return conn
+
+
+_db_initialized = False
 
 
 def init_db() -> None:
     """Initializes the audit storage SQLite database and tables."""
+    global _db_initialized
+    if _db_initialized:
+        return
     conn = get_db_connection()
     try:
         with conn:
@@ -34,6 +41,7 @@ def init_db() -> None:
                 )
                 """
             )
+        _db_initialized = True
     finally:
         conn.close()
 

@@ -1,3 +1,11 @@
+import sys
+from pathlib import Path
+
+# Add project root to sys.path so evaluation, app, etc. are importable
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 import os
 import json
 import requests
@@ -275,7 +283,7 @@ with tabs[3]:
     st.header("Security Evaluation & Benchmark Metrics")
     st.caption("Empirical measurements across benign, instruction override, indirect injection, and exfiltration vectors.")
 
-    eval_file = "evaluation/evaluation_results.json"
+    eval_file = PROJECT_ROOT / "evaluation" / "evaluation_results.json"
     eval_data = None
     if os.path.exists(eval_file):
         with open(eval_file, "r", encoding="utf-8") as f:

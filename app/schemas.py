@@ -36,7 +36,6 @@ class ChatResponse(BaseModel):
 class ToolCallRequest(BaseModel):
     tool_name: str
     arguments: Dict[str, Any] = Field(default_factory=dict)
-    workspace: str = Field(default="demo_workspace")
 
 
 class ToolCallResponse(BaseModel):
