@@ -1,5 +1,4 @@
 import time
-import json
 import uuid
 import logging
 from typing import Optional
@@ -48,7 +47,7 @@ def _call_nemotron_model(prompt: str, context: str) -> ModelRiskAnalysis:
             {"role": "user", "content": user_content},
         ],
         temperature=0.0,
-        response_format={"type": "json_object"} if hasattr(client.chat.completions, "create") else None,
+        response_format={"type": "json_object"},
     )
 
     content = response.choices[0].message.content
@@ -90,7 +89,7 @@ def _simulate_risk_analysis(prompt: str, context: str, signals: list[str]) -> Mo
             reasons=["Detected explicit system instruction override or jailbreak pattern"],
         )
 
-    if "suspicious_tool_intent" in signals or "execute" in combined and "bash" in combined:
+    if "suspicious_tool_intent" in signals or ("execute" in combined and "bash" in combined):
         return ModelRiskAnalysis(
             risk_score=90,
             category="tool_abuse",

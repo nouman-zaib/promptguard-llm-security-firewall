@@ -5,16 +5,24 @@ import time
 from pathlib import Path
 
 # Ensure project root is in sys.path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from typing import Dict, Any, List
 from app.security.analyzer import analyze
 
 
-def run_evaluation(dataset_path: str = "evaluation/dataset.jsonl") -> Dict[str, Any]:
-    dataset_file = Path(dataset_path)
+def run_evaluation(dataset_path: str = None) -> Dict[str, Any]:
+    if dataset_path is None:
+        dataset_file = PROJECT_ROOT / "evaluation" / "dataset.jsonl"
+    else:
+        dataset_file = Path(dataset_path)
+        if not dataset_file.is_absolute() and not dataset_file.exists():
+            dataset_file = PROJECT_ROOT / dataset_file
+
     if not dataset_file.exists():
-        raise FileNotFoundError(f"Evaluation dataset not found at {dataset_path}")
+        raise FileNotFoundError(f"Evaluation dataset not found at {dataset_file}")
 
     records: List[Dict[str, Any]] = []
     with open(dataset_file, "r", encoding="utf-8") as f:
@@ -126,7 +134,7 @@ def run_evaluation(dataset_path: str = "evaluation/dataset.jsonl") -> Dict[str, 
     print("=" * 65)
 
     # Save to JSON
-    output_file = Path("evaluation/evaluation_results.json")
+    output_file = PROJECT_ROOT / "evaluation" / "evaluation_results.json"
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(metrics, f, indent=2)
     print(f"Metrics saved to {output_file.resolve()}")

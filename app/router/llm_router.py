@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from openai import OpenAI
 from app.config import settings
 from app.security.analyzer import analyze
